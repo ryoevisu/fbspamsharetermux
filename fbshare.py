@@ -1,315 +1,165 @@
-import sys
-import re
-import os
-import requests
-import time
-import threading
-from concurrent.futures import ThreadPoolExecutor
-from bs4 import BeautifulSoup as bs
+#---#---#------[AUTHOR KAITO DEV]------#---#---#
+###----------[ IMPORT LIBRARY ]---------- ###
+import requests, os, re, bs4, calendar, sys, json, time, random, datetime, subprocess, logging, base64,uuid
 from datetime import datetime
-from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
-from rich.panel import Panel
-from rich.text import Text
-from rich.prompt import Prompt
-from rich.table import Table
-from pyfiglet import Figlet
-import random
-import json
-import getpass
-import platform
+from time import sleep
+from time import sleep as jeda
+from time import strftime
+from random import choice
+from pathlib import Path
+from rich.console import Console as sol
+from rich.markdown import Markdown as mark
+from rich.columns import Columns as col
+from rich.text import Text as tekz
+from rich.panel import Panel as nel
+from rich import print as cetak
+ses=requests.Session()
 
-class FacebookShareTool:
-    def __init__(self):
-        self.console = Console()
-        self.session = requests.Session()
-        self.success_counter = 0
-        self.failed_counter = 0
-        self.lock = threading.Lock()
-        self.user_agents = self.load_user_agents()
-        self.proxies = self.load_proxies()
-        self.version = "2.2.0"
-        
-    def load_user_agents(self):
-        return [
-            'Mozilla/5.0 (Linux; Android 12; SM-S906N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Mobile Safari/537.36',
-            'Mozilla/5.0 (Linux; Android 11; SM-G996U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.88 Mobile Safari/537.36',
-            'Mozilla/5.0 (Linux; Android 13; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Mobile Safari/537.36',
-            'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1'
-        ]
+###----------[ CALENDAR ]----------###
+bulan = {'1':'January','2':'February','3':'March','4':'April','5':'May','6':'June','7':'July','8':'August','9':'September','10': 'October', '11': 'November', '12': 'December'}
+tgl = datetime.now().day
+bln = bulan[(str(datetime.now().month))]
+thn = datetime.now().year
+tanggal = (str(tgl)+' '+str(bln)+' '+str(thn))
+waktu = strftime('%H:%M:%S')
+hari = datetime.now().strftime("%A")
 
-    def load_proxies(self):
-        try:
-            with open('proxies.txt', 'r') as f:
-                return [line.strip() for line in f if line.strip()]
-        except:
-            return []
+###----------[ WARNA 1 ]---------- ###
+Z = "\x1b[0;90m"     # Hitam
+M = "\x1b[38;5;196m" # Merah
+H = "\x1b[38;5;46m"  # Hijau
+K = "\x1b[38;5;226m" # Kuning
+B = "\x1b[38;5;44m"  # Biru
+U = "\x1b[0;95m"     # Ungu
+O = "\x1b[0;96m"     # Biru Muda
+P = "\x1b[38;5;231m" # Putih
+J = "\x1b[38;5;208m" # Jingga
+A = "\x1b[38;5;248m" # Abu-Abu
+N = '\x1b[0m'	# WARNA MATI
+PT = '\x1b[1;97m' # PUTIH TEBAL
+MT = '\x1b[1;91m' # MERAH TEBAL
+HT = '\x1b[1;92m' # HIJAU TEBAL
+KT = '\x1b[1;93m' # KUNING TEBAL
+BT = '\x1b[1;94m' # BIRU TEBAL
+UT = '\x1b[1;95m' # UNGU TEBAL
+OT = '\x1b[1;96m' # BIRU MUDA TEBAL
 
-    def check_for_updates(self):
-        try:
-            response = requests.get("https://api.github.com/repos/yurievisu/fbspamsharetermux/releases/latest")
-            latest_version = response.json()["tag_name"]
-            if latest_version > self.version:
-                self.console.print(f"[yellow]New version {latest_version} available! Current version: {self.version}")
-        except:
-            pass
+###----------[ WARNA 2 ]---------- ###
+Z2 = "[#000000]" # HITAM
+M2 = "[#FF0000]" # MERAH
+H2 = "[#00FF00]" # HIJAU
+K2 = "[#FFFF00]" # KUNING
+B2 = "[#00C8FF]" # BIRU
+U2 = "[#AF00FF]" # UNGU
+N2 = "[#FF00FF]" # PINK
+O2 = "[#00FFFF]" # BIRU MUDA
+P2 = "[#FFFFFF]" # PUTIH
+J2 = "[#FF8F00]" # JINGGA
+A2 = "[#AAAAAA]" # ABU-ABU
 
-    def print_system_info(self):
-        table = Table(title="System Information")
-        table.add_column("Property", style="cyan")
-        table.add_column("Value", style="green")
-        
-        table.add_row("OS", platform.system())
-        table.add_row("Python Version", platform.python_version())
-        table.add_row("Tool Version", self.version)
-        table.add_row("Proxies Loaded", str(len(self.proxies)))
-        
-        self.console.print(table)
+###----------[ USER AGENT ]---------- ###
+ua_default = 'Mozilla/5.0 (Linux; Android 3.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.66 Mobile Safari/537.36'
+ua_samsung = 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/43.0.2357.121 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/35.0.0.48.273;]'
+ua_nokia   = 'nokiac3-00/5.0 (07.20) profile/midp-2.1 configuration/cldc-1.1 mozilla/5.0 applewebkit/420+ (khtml, like gecko) safari/420+'
+ua_xiaomi  = 'Mozilla/5.0 (Linux; Android 10; Mi 9T Pro Build/QKQ1.190825.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/88.0.4324.181 Mobile Safari/537.36 [FBAN/EMA;FBLC/id_ID;FBAV/239.0.0.10.109;]'
+ua_oppo    = 'Mozilla/5.0 (Linux; Android 5.1.1; A37f) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.105 Mobile Safari/537.36 [FBAN/EMA;FBLC/id_ID;FBAV/239.0.0.10.109;]'
+ua_vivo    = 'Mozilla/5.0 (Linux; Android 11; vivo 1918) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.62 Mobile Safari/537.36 [FBAN/EMA;FBLC/id_ID;FBAV/239.0.0.10.109;]'
+ua_iphone  = 'Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Mobile/15E148 Safari/604.1'
+ua_asus    = 'Mozilla/5.0 (Linux; Android 5.0; ASUS_Z00AD Build/LRX21V) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/37.0.0.0 Mobile Safari/537.36 [FBAN/EMA;FBLC/id_ID;FBAV/239.0.0.10.109;]'
+ua_lenovo  = 'Mozilla/5.0 (Linux; U; Android 5.0.1; ru-RU; Lenovo A788t Build/LRX22C) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 UCBrowser/11.3.0.950 U3/0.8.0 Mobile Safari/E7FBAF'
+ua_huawei  = 'Mozilla/5.0 (Linux; Android 8.1.0; HUAWEI Y7 PRIME 2019 Build/5887208) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.62 Mobile Safari/537.36 [FBAN/EMA;FBLC/id_ID;FBAV/239.0.0.10.109;]'
+ua_windows = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36 [FBAN/EMA;FBLC/id_ID;FBAV/239.0.0.10.109;]'
+ua_chrome  = 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.58 Mobile Safari/537.36'
+ua_fb      = 'Mozilla/5.0 (Linux; Android 8.0.0; RNE-L21 Build/HUAWEIRNE-L21; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/100.0.4896.58 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/360.0.0.30.113;]'
+ua_random = random.choice([ua_default,ua_samsung,ua_nokia,ua_xiaomi,ua_oppo,ua_vivo,ua_iphone,ua_asus,ua_lenovo,ua_huawei,ua_windows,ua_chrome,ua_fb])
+kom1 = ("Very cool bro:v")
+###----------[ INI LOGO ]----------###	
+def logo_menu():
+ li = '# WELCOME TO FACEBOOK AUTO SHARE TOOL'
+ lo = mark(li, style='white')
+ sol().print(lo, style='blue')
+ banner = f'''
 
-    def print_banner(self):
-        f = Figlet(font='slant')
-        banner = f.renderText('FB Auto Share')
-        self.console.print(Panel(
-            Text(banner, style="bold cyan") + "\n" +
-            Text("Created by Yuri Evisu", style="bold yellow") + "\n" +
-            Text(f"Version {self.version}", style="bold green") + "\n" +
-            Text("Telegram: @yurievisu", style="bold blue"),
-            border_style="cyan"
-        ))
 
-    def print_menu(self):
-        menu = Table(show_header=True, header_style="bold magenta")
-        menu.add_column("Option", style="cyan")
-        menu.add_column("Description", style="green")
-        
-        menu.add_row("1", "Start Auto Share")
-        menu.add_row("2", "Load Session")
-        menu.add_row("3", "System Info")
-        menu.add_row("4", "Check Updates")
-        menu.add_row("5", "Exit")
-        
-        self.console.print(menu)
+░██████╗██████╗░░█████╗░███╗░░░███╗
+██╔════╝██╔══██╗██╔══██╗████╗░████║
+╚█████╗░██████╔╝███████║██╔████╔██║
+░╚═══██╗██╔═══╝░██╔══██║██║╚██╔╝██║
+██████╔╝██║░░░░░██║░░██║██║░╚═╝░██║
+╚═════╝░╚═╝░░░░░╚═╝░░╚═╝╚═╝░░░░░╚═╝
 
-    def get_random_proxy(self):
-        return {'http': random.choice(self.proxies)} if self.proxies else None
 
-    def save_session(self, cookie, token):
-        session_data = {
-            'cookie': cookie,
-            'token': token,
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }
-        with open('.session', 'w') as f:
-            json.dump(session_data, f)
+░██████╗██╗░░██╗░█████╗░██████╗░███████╗
+██╔════╝██║░░██║██╔══██╗██╔══██╗██╔════╝
+╚█████╗░███████║███████║██████╔╝█████╗░░
+░╚═══██╗██╔══██║██╔══██║██╔══██╗██╔══╝░░
+██████╔╝██║░░██║██║░░██║██║░░██║███████╗
+╚═════╝░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝╚══════╝
 
-    def load_session(self):
-        try:
-            with open('.session', 'r') as f:
-                return json.load(f)
-        except:
-            return None
-
-    def get_cookie(self, email, password):
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[bold blue]{task.description}"),
-            BarColumn(),
-            TaskProgressColumn(),
-            console=self.console
-        ) as progress:
-            task = progress.add_task("[cyan]Logging in...", total=100)
-            
-            try:
-                headers = {
-                    'User-Agent': random.choice(self.user_agents),
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-                }
-                
-                progress.update(task, advance=30)
-                self.session.headers.update(headers)
-                
-                response = self.session.get('https://m.facebook.com', proxies=self.get_random_proxy())
-                progress.update(task, advance=20)
-                
-                soup = bs(response.text, 'html.parser')
-                data = {
-                    'email': email,
-                    'pass': password,
-                    'login': 'Log In'
-                }
-                
-                for input_tag in soup.find_all('input', {'type': ['hidden', 'submit']}):
-                    if input_tag.get('value') and input_tag.get('name'):
-                        data[input_tag['name']] = input_tag['value']
-                
-                progress.update(task, advance=25)
-                response = self.session.post(
-                    'https://m.facebook.com/login',
-                    data=data,
-                    allow_redirects=True,
-                    proxies=self.get_random_proxy()
-                )
-                
-                progress.update(task, advance=25)
-                cookie = "; ".join([f"{k}={v}" for k, v in self.session.cookies.items()])
-                
-                return cookie if 'c_user' in cookie else None
-                
-            except Exception as e:
-                self.console.print(f"[bold red]Error during login: {str(e)}")
-                return None
-
-    def get_token(self, cookie):
-        try:
-            headers = {
-                'Cookie': cookie,
-                'User-Agent': random.choice(self.user_agents)
-            }
-            response = self.session.get(
-                'https://business.facebook.com/business_locations',
-                headers=headers,
-                proxies=self.get_random_proxy()
-            )
-            token = re.search(r'EAAG\w+', response.text)
-            return token.group(0) if token else None
-        except Exception as e:
-            self.console.print(f"[bold red]Error getting token: {str(e)}")
-            return None
-
-    def share_post(self, token_data, post_id, delay):
-        cookie, token = token_data.split('|')
-        headers = {
-            'Cookie': cookie,
-            'User-Agent': random.choice(self.user_agents)
-        }
-        
-        try:
-            time.sleep(delay)
-            response = self.session.post(
-                'https://graph.facebook.com/me/feed',
-                params={
-                    'link': f'https://m.facebook.com/{post_id}',
-                    'published': '0',
-                    'access_token': token
-                },
-                headers=headers,
-                proxies=self.get_random_proxy()
-            )
-            
-            result = response.json()
-            
-            with self.lock:
-                if 'id' in result:
-                    self.success_counter += 1
-                    self.console.print(f"[{datetime.now().strftime('%H:%M:%S')}] [bold green]Share successful ({self.success_counter})")
-                else:
-                    self.failed_counter += 1
-                    self.console.print(f"[{datetime.now().strftime('%H:%M:%S')}] [bold red]Share failed ({self.failed_counter})")
-                    
-        except Exception as e:
-            with self.lock:
-                self.failed_counter += 1
-                self.console.print(f"[bold red]Error sharing: {str(e)}")
-
-    def start_sharing(self):
-        try:
-            session_data = self.load_session()
-            if session_data:
-                use_session = Prompt.ask("[bold yellow]Found existing session. Use it?", choices=["y", "n"], default="y")
-                if use_session == "y":
-                    cookie, token = session_data['cookie'], session_data['token']
-                else:
-                    session_data = None
-            
-            if not session_data:
-                email = Prompt.ask("[bold blue]Enter your Facebook email")
-                password = getpass.getpass("Enter your Facebook password: ")
-                
-                cookie = self.get_cookie(email, password)
-                if not cookie:
-                    self.console.print("[bold red]Login failed!")
-                    return
-                
-                self.console.print("[bold green]Login successful!")
-                token = self.get_token(cookie)
-                if not token:
-                    self.console.print("[bold red]Failed to get access token!")
-                    return
-                
-                self.save_session(cookie, token)
-            
-            shares = int(Prompt.ask("[bold blue]Number of shares", default="10"))
-            delay = float(Prompt.ask("[bold blue]Delay between shares (seconds)", default="2.0"))
-            post_url = Prompt.ask("[bold blue]Post URL")
-            
-            post_id = re.search(r"pfbid(\w+)", post_url)
-            if not post_id:
-                self.console.print("[bold red]Invalid post URL!")
-                return
-            
-            self.console.print("[bold yellow]Starting share process...")
-            
-            token_data = f"{cookie}|{token}"
-            
-            with ThreadPoolExecutor(max_workers=5) as executor:
-                futures = [
-                    executor.submit(self.share_post, token_data, post_id.group(0), delay)
-                    for _ in range(shares)
-                ]
-                
-                for future in futures:
-                    future.result()
-            
-            self.console.print(Panel(
-                Text.assemble(
-                    ("Share process completed!\n", "bold green"),
-                    (f"Successful shares: {self.success_counter}\n", "bold blue"),
-                    (f"Failed shares: {self.failed_counter}", "bold red")
-                )
-            ))
-            
-        except Exception as e:
-            self.console.print(f"[bold red]An error occurred: {str(e)}")
-
-    def main(self):
-        while True:
-            try:
-                os.system('clear' if 'linux' in sys.platform.lower() else 'cls')
-                self.print_banner()
-                self.print_menu()
-                
-                choice = Prompt.ask("[bold cyan]Select option", choices=["1", "2", "3", "4", "5"])
-                
-                if choice == "1":
-                    self.start_sharing()
-                elif choice == "2":
-                    session_data = self.load_session()
-                    if session_data:
-                        self.console.print(Panel(
-                            Text.assemble(
-                                ("Session Information\n", "bold green"),
-                                (f"Timestamp: {session_data['timestamp']}\n", "bold yellow")
-                            )
-                        ))
-                    else:
-                        self.console.print("[bold red]No saved session found!")
-                elif choice == "3":
-                    self.print_system_info()
-                elif choice == "4":
-                    self.check_for_updates()
-                elif choice == "5":
-                    self.console.print("[bold green]Thanks for using FB Auto Share!")
-                    break
-                
-                input("\nPress Enter to continue...")
-                
-            except KeyboardInterrupt:
-                self.console.print("\n[bold yellow]Exiting...")
-                break
-            except Exception as e:
-                self.console.print(f"[bold red]An error occurred: {str(e)}")
-                input("\nPress Enter to continue...")
-
-if __name__ == "__main__":
-    tool = FacebookShareTool()
-    tool.main()
+ '''
+ cetak(nel(banner,title=f'{P2} {H2}[ {P2}>@KAITODEV< {H2}]',subtitle_align='left',padding=1,style='red'))
+	
+###----------[ MENU LOGIN ]----------###	
+def login():
+	os.system("clear")
+	cetak(nel(f'   {P2}Login Cookies First \n\n              {H2}--[ SUCCESS ]--',title=f'{P2} {H2}[ {P2}Welcome {H2}]',width=54,padding=(1,4),style='blue'))
+	cetak(nel(f'{P2} Download Cookies in Kiwi Browser',subtitle=f'{P2}┌─[ Cookies ]',subtitle_align='left',width=54,padding=1,style='blue'))
+	cookie = input(f"{P}   └──> : {H}")
+	try:
+		data = ses.get("https://business.facebook.com/business_locations", headers = {"user-agent": "Mozilla/5.0 (Linux; Android 8.1.0; MI 8 Build/OPM1.171019.011) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.86 Mobile Safari/537.36","referer": "https://www.facebook.com/","host": "business.facebook.com","origin": "https://business.facebook.com","upgrade-insecure-requests" : "1","accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7","cache-control": "max-age=0","accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8","content-type":"text/html; charset=utf-8"}, cookies = {"cookie":cookie})
+		find_token = re.search("(EAAG\w+)", data.text)
+		open("token.json", "w").write(find_token.group(1))
+		open("cookie.json", "w").write(cookie)
+		cetak(nel(f'{P2} LOGIN SUCCEED',width=24,style=f"#00FF00"));time.sleep(2)
+		bot_share()
+	except:
+		os.system("rm token.json cookie.json")
+		cetak(nel(f'{P2} COOKIE INVALID',width=22,style=f"#00FF00"));time.sleep(1.5) 
+		login()
+		
+###----------[ AUTO SHARE ]----------###	
+def bot_share():
+	os.system('clear')
+	try:
+		token = open("token.json","r").read()
+		cok = open("cookie.json","r").read()
+		cookie = {"cookie":cok}
+		ip = requests.get("https://api.ipify.org").text
+		nama = ses.get(f"https://graph.facebook.com/me?fields=name&access_token={token}",cookies=cookie).json()["name"]
+		id = requests.get("https://graph.facebook.com/me/?access_token=%s"%(token),cookies={"cookie":cok}).json()["id"]	    
+		requests.post(f"https://graph.facebook.com/826244541950192/comments/?message={kom1}&access_token={token}", headers = {"cookie":cok})
+	except:
+		os.system("rm token.json cookie.json")
+		cetak(nel(f'{P2} COOKIE INVALID!!',width=22,style=f"#00FF00"));time.sleep(1.5)
+		login()
+	os.system('clear')
+	logo_menu()
+	cetak(nel(f'''
+{P2} Created By      : {H2}Fritz Martin Amparado 
+{P2} User Active     : {H2}{nama} 
+{P2} You Id          : {id}
+{P2} You Ip          : {ip}
+{P2} Current Date    : {hari}, {tanggal}''',title=f'{P2} {H2}[ {P2}User Information {H2}]',subtitle_align='left',padding=1,style='blue'))
+	cetak(nel(f'{P2}Hello {H2}{nama}{P2}, copy the post link must be from Facebook Lite otherwise an error will occur when the bot share process runs.',title=f'{P2} {H2}[ {P2}Notes {H2}]',subtitle_align='left',padding=1,style='blue'))
+	cetak(nel(f'{P2} LINK POST',subtitle=f'{P2}┌─',subtitle_align='left',width=25,padding=0,style='blue'))
+	link = input(f"{P}   └──> : {H}")
+	cetak(nel(f'{P2} AMOUNT OF SHARES',subtitle=f'{P2}┌─',subtitle_align='left',width=22,padding=0,style='blue'))
+	jumlah = int(input(f"{P}   └──> : {H}"))
+	cetak(nel(f'{P2} AUTO SHARE ONGOING',subtitle=f'{P2}┌─',subtitle_align='left',width=29,padding=0,style='blue'))
+	basariganteng = datetime.now()
+	try:
+		n = 0
+		header = {"authority":"graph.facebook.com","cache-control":"max-age=0","sec-ch-ua-mobile":"?0","user-agent":"Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Mobile/15E148 Safari/604.1"}
+		for x in range(jumlah):
+			n+=1
+			post = ses.post(f"https://graph.facebook.com/v13.0/me/feed?link={link}&published=0&access_token={token}",headers=header, cookies=cookie).text
+			data = json.loads(post)
+			if "id" in post:
+				bas = str(datetime.now()-basariganteng).split('.')[0]
+				print(f'{P}\r   └──> {bas} Successfully Shared {H}{n}{P} Post {N} ',end='');sys.stdout.flush()
+			else:
+				print("\n")
+				cetak(nel(f'{P2} AUTO SHARE STOP POSSIBLE INVALID COOKIES',width=35,padding=0,style='red'));exit()
+	except requests.exceptions.ConnectionError:
+		print(f"\n{P}(!) You are not connected to the internet!");exit()
+bot_share()
