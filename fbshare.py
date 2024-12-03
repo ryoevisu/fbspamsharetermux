@@ -47,7 +47,7 @@ class FacebookShareTool:
 
     def check_for_updates(self):
         try:
-            response = requests.get("https://api.github.com/repos/yurievisu/fb-autoshare/releases/latest")
+            response = requests.get("https://api.github.com/repos/yurievisu/fbspamsharetermux/releases/latest")
             latest_version = response.json()["tag_name"]
             if latest_version > self.version:
                 self.console.print(f"[yellow]New version {latest_version} available! Current version: {self.version}")
