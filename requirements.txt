@@ -1,5 +1,2 @@
-requests
-bs4
-rich
-pathlibs
-datetime
+aiohttp
+typing
